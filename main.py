@@ -47,7 +47,7 @@ def parse_args():
 
 def main() -> int:
     args = parse_args()
-    telemetry = parse_telemetry(
+    timestamps, dataset = parse_telemetry(
         args.tlog,
         fields=[
             "VFR_HUD.heading",
@@ -60,8 +60,8 @@ def main() -> int:
             "GPS2_RAW.eph",
             "GPS_RAW_INT.eph",
         ],
+        head=args.head,
     )
-    print(telemetry)
 
     return 0
 
