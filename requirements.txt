@@ -1,3 +1,4 @@
-pymavlink
+matplotlib
 numpi
 pandas
+pymavlink
