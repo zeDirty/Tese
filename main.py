@@ -61,6 +61,8 @@ def main() -> int:
     t = [t-timestamps[0] for t in timestamps]
     plt.plot(t, dataset["GPS2_RAW.eph"], "r", label=["GPS2_RAW.eph"])
     plt.plot(t, dataset["GPS_RAW_INT.eph"], "g", label=["GPS_RAW_INT.eph"])
+    plt.xlabel("seconds")
+    plt.ylabel("meters")
     plt.legend()
     plt.show()
 

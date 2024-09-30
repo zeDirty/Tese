@@ -10,5 +10,6 @@ pip install -r requirements.txt
 ## run
 
 ```
-./main.py -t "<xxxx>.tlog" --head 500000
+./main.py -t "<xxxx>.tlog"
+./main.py -t "<xxxx>.tlog" --head 50000  # parse only the first 50000 entries
 ```
