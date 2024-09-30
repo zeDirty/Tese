@@ -163,3 +163,4 @@ cython_debug/
 
 *.tlog
 *.csv
+*.pickle

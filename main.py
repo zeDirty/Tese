@@ -1,8 +1,12 @@
 #!/usr/bin/env python3
+import os
+import pickle
 from argparse import ArgumentParser
-from telemetry_parser import parse_telemetry
+
 import matplotlib.pyplot as plt
 import numpy as np
+
+from telemetry_parser import parse_telemetry
 
 
 def parse_args():
@@ -26,6 +30,13 @@ def parse_args():
         help="process only the first N entries (if included, defaults to 10)",
     )
     parser.add_argument(
+        "--no-cache",
+        type=bool,
+        required=False,
+        default=False,
+        help="a Tlog file gets cached. Pass this flag for ignoring it",
+    )
+    parser.add_argument(
         "-o",
         "--output",
         required=False,
@@ -41,24 +52,36 @@ def parse_args():
 
 def main() -> int:
     args = parse_args()
-    timestamps, dataset = parse_telemetry(
-        args.tlog,
-        fields=[
-            "VFR_HUD.heading",
-            "VFR_HUD.alt",
-            "VFR_HUD.climb",
-            "VFR_HUD.groundspeed",
-            "VFR_HUD.airspeed",
-            "VFR_HUD.throttle",
-            "GLOBAL_POSITION_INT.vx",
-            "GPS2_RAW.eph",
-            "GPS_RAW_INT.eph",
-        ],
-        head=args.head,
-    )
+    timestamps, dataset = [], {}
+
+    cache_filename = f"{args.tlog}.h{args.head}.pickle"
+    if os.path.isfile(cache_filename):
+        print("Using cached values already processed for this tlog file")
+        with open(cache_filename, 'rb') as f:
+            timestamps, dataset = pickle.load(f)
+    else:
+        timestamps, dataset = parse_telemetry(
+            args.tlog,
+            fields=[
+                "VFR_HUD.heading",
+                "VFR_HUD.alt",
+                "VFR_HUD.climb",
+                "VFR_HUD.groundspeed",
+                "VFR_HUD.airspeed",
+                "VFR_HUD.throttle",
+                "GLOBAL_POSITION_INT.vx",
+                "GPS2_RAW.eph",
+                "GPS_RAW_INT.eph",
+            ],
+            head=args.head,
+        )
+        with open(cache_filename, 'wb') as f:
+            pickle.dump([timestamps, dataset], f, protocol=pickle.HIGHEST_PROTOCOL)
+
+
 
     print("Showing a chart")
-    t = [t-timestamps[0] for t in timestamps]
+    t = [t - timestamps[0] for t in timestamps]
     plt.plot(t, dataset["GPS2_RAW.eph"], "r", label=["GPS2_RAW.eph"])
     plt.plot(t, dataset["GPS_RAW_INT.eph"], "g", label=["GPS_RAW_INT.eph"])
     plt.xlabel("seconds")
