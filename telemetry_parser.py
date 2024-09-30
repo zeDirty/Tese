@@ -62,7 +62,7 @@ def parse_telemetry(
     for field in dataset:  # fill values before first None
         for j, v in enumerate(dataset[field]):
             if v is not None:
-                dataset[field][:j] = [v] * (j - 1)
+                dataset[field][:j] = [v] * (j)
                 break
 
     return tstamps, dataset
