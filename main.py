@@ -31,10 +31,8 @@ def parse_args():
     )
     parser.add_argument(
         "--no-cache",
-        type=bool,
-        required=False,
-        default=False,
-        help="a Tlog file gets cached. Pass this flag for ignoring it",
+        action="store_true",
+        help="a Tlog file gets cached. Pass this flag processing all over again",
     )
     parser.add_argument(
         "-o",
@@ -55,7 +53,7 @@ def main() -> int:
     timestamps, dataset = [], {}
 
     cache_filename = f"{args.tlog}.h{args.head}.pickle"
-    if os.path.isfile(cache_filename):
+    if not args.no_cache and os.path.isfile(cache_filename):
         print("Using cached values already processed for this tlog file")
         with open(cache_filename, 'rb') as f:
             timestamps, dataset = pickle.load(f)
