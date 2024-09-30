@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 from argparse import ArgumentParser
 from telemetry_parser import parse_telemetry
+import matplotlib.pyplot as plt
+import numpy as np
 
 
 def parse_args():
@@ -9,14 +11,6 @@ def parse_args():
     """
     parser = ArgumentParser(description=__doc__)
 
-    parser.add_argument(
-        "command",
-        help="what to do",
-        choices=[
-            "tlog2csv",
-            "diffs",
-        ],
-    )
     parser.add_argument(
         "-t",
         "--tlog",
@@ -62,6 +56,13 @@ def main() -> int:
         ],
         head=args.head,
     )
+
+    print("Showing a chart")
+    t = [t-timestamps[0] for t in timestamps]
+    plt.plot(t, dataset["GPS2_RAW.eph"], "r", label=["GPS2_RAW.eph"])
+    plt.plot(t, dataset["GPS_RAW_INT.eph"], "g", label=["GPS_RAW_INT.eph"])
+    plt.legend()
+    plt.show()
 
     return 0
 
