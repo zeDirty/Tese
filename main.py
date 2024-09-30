@@ -1,12 +1,6 @@
 #!/usr/bin/env python3
 from argparse import ArgumentParser
-
-tlog_fields = {
-    "VFR_HUD": ["heading", "alt", "climb", "groundspeed", "airspeed", "throttle"],
-    "GLOBAL_POSITION_INT": ["vx"],
-    "GPS2_RAW": ["eph"],
-    "GPS_RAW_INT": ["eph"],
-}
+from telemetry_parser import parse_telemetry
 
 
 def parse_args():
@@ -46,14 +40,28 @@ def parse_args():
 
     parsed = parser.parse_args()
     if parsed.head is None:
-        parsed.head = 10 # flag was included, so default is applied
+        parsed.head = 10  # flag was included, so default is applied
 
     return parsed
 
 
 def main() -> int:
     args = parse_args()
-    print(args)
+    telemetry = parse_telemetry(
+        args.tlog,
+        fields=[
+            "VFR_HUD.heading",
+            "VFR_HUD.alt",
+            "VFR_HUD.climb",
+            "VFR_HUD.groundspeed",
+            "VFR_HUD.airspeed",
+            "VFR_HUD.throttle",
+            "GLOBAL_POSITION_INT.vx",
+            "GPS2_RAW.eph",
+            "GPS_RAW_INT.eph",
+        ],
+    )
+    print(telemetry)
 
     return 0
 
