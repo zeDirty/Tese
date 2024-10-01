@@ -29,29 +29,28 @@ def parse_telemetry(
     tstamps = [None] * n_entries
     dataset = {field: [None] * n_entries for field in fields}
 
-    valid_idx = []
+    i=0
     for i in range(n_entries):
-        if i % 10000 == 0:
-            print(f"Parsing relevant fields ({i*100/n_entries:.1f}%)\r", end="")
-        msg = mlog.recv_msg()
+        msg = mlog.recv_match(type=set(msg_types.keys()))
+        if msg is None:
+            break
+        if i % 1000 == 0:
+            print(
+                f"Parsing relevant fields ({(mlog.offset if head <= 0 else head)*100/n_entries:.1f}%)\r",
+                end="",
+            )
 
         if hasattr(msg, "msgname") and msg.msgname in msg_types:
             tstamps[i] = getattr(msg, "_timestamp", None)
-            valid_idx.append(i)
             for fname in msg_types[msg.msgname]:
                 dataset[f"{msg.msgname}.{fname}"][i] = getattr(msg, fname, None)
     print("Parsed all relevant fields         ")
 
     print("Cleaning unused fields")
     # remove timstamps without data
-    new_tstamps = [None] * len(valid_idx)
-    new_dataset = {field: [None] * len(valid_idx) for field in fields}
-    for i, idx in enumerate(valid_idx):
-        new_tstamps[i] = tstamps[idx]
-    for key in new_dataset:
-        for i, idx in enumerate(valid_idx):
-            new_dataset[key][i] = dataset[key][idx]
-    tstamps, dataset = new_tstamps, new_dataset
+    tstamps = tstamps[:i]
+    for k in dataset:
+        dataset[k] = dataset[k][:i]
 
     print("Remove None values")
     # fill None values - the easy way
