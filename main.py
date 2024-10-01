@@ -79,12 +79,16 @@ def main() -> int:
 
 
     print("Showing a chart")
+    fig, axs = plt.subplots(2)
+
     t = [t - timestamps[0] for t in timestamps]
-    plt.plot(t, dataset["GPS2_RAW.eph"], "r", label=["GPS2_RAW.eph"])
-    plt.plot(t, dataset["GPS_RAW_INT.eph"], "g", label=["GPS_RAW_INT.eph"])
-    plt.xlabel("seconds")
-    plt.ylabel("meters")
-    plt.legend()
+    axs[0].plot(t, dataset["GPS2_RAW.eph"], "r", label=["GPS2_RAW.eph"])
+    axs[0].plot(t, dataset["GPS_RAW_INT.eph"], "g", label=["GPS_RAW_INT.eph"])
+    axs[0].legend()
+
+    diffs = [b - a for a,b in zip(dataset["GPS2_RAW.eph"], dataset["GPS_RAW_INT.eph"])]
+    axs[1].plot(t, diffs, "r", label=["diffs.eph"])
+    axs[1].legend()
     plt.show()
 
     return 0
