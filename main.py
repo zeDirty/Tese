@@ -49,18 +49,22 @@ def parse_args():
 
 
 def generate_gps2_charts(timestamps, dataset, filename):
-    fig, axs = plt.subplots(2, figsize=(10, 10))
+    fig, axs = plt.subplots(2, figsize=(8, 8), layout="constrained")
+    fig.suptitle("Compare GPS2_RAW.eph and GPS_RAW_INT.eph")
 
     t = [t - timestamps[0] for t in timestamps]
-    axs[0].plot(t, dataset["GPS2_RAW.eph"], "r", label=["GPS2_RAW.eph"])
-    axs[0].plot(t, dataset["GPS_RAW_INT.eph"], "g", label=["GPS_RAW_INT.eph"])
+    axs[0].plot(t, dataset["GPS2_RAW.eph"], "r", label=["GPS2_RAW.eph"], linewidth=1)
+    axs[0].plot(
+        t, dataset["GPS_RAW_INT.eph"], "g", label=["GPS_RAW_INT.eph"], linewidth=1
+    )
     axs[0].legend()
+    axs[0].set_ylabel("heigh (m)")
 
     diffs = [b - a for a, b in zip(dataset["GPS2_RAW.eph"], dataset["GPS_RAW_INT.eph"])]
     d_min, d_max, d_avg = min(diffs), max(diffs), np.average(np.abs(diffs))
-    axs[1].plot(
-        t, diffs, "r", label=["diffs.eph"], marker=".", linestyle="none", markersize=1
-    )
+    axs[1].plot(t, diffs, "r", label=["diffs.eph"], linewidth=1)
+    axs[1].set_ylabel("error (m)")
+    axs[1].set_xlabel("time (s)")
     axs[1].legend()
     axs[1].text(
         0.02,
