@@ -48,6 +48,35 @@ def parse_args():
     return parsed
 
 
+def generate_gps2_charts(timestamps, dataset, filename):
+    fig, axs = plt.subplots(2, figsize=(10, 10))
+
+    t = [t - timestamps[0] for t in timestamps]
+    axs[0].plot(t, dataset["GPS2_RAW.eph"], "r", label=["GPS2_RAW.eph"])
+    axs[0].plot(t, dataset["GPS_RAW_INT.eph"], "g", label=["GPS_RAW_INT.eph"])
+    axs[0].legend()
+
+    diffs = [b - a for a, b in zip(dataset["GPS2_RAW.eph"], dataset["GPS_RAW_INT.eph"])]
+    d_min, d_max, d_avg = min(diffs), max(diffs), np.average(np.abs(diffs))
+    axs[1].plot(
+        t, diffs, "r", label=["diffs.eph"], marker=".", linestyle="none", markersize=1
+    )
+    axs[1].legend()
+    axs[1].text(
+        0.02,
+        0.95,
+        f"min = {d_min:+}\nmax = {d_max:+}\nabs_avg = {d_avg:+.2}",
+        ha="left",
+        va="top",
+        transform=axs[1].transAxes,
+        bbox=dict(boxstyle="round", fc=(0.8, 0.8, 0.8, 0.8), ec="none"),
+        fontsize=12,
+    )
+
+    print(f"Saving chart to {filename}")
+    fig.savefig(filename)
+
+
 def main() -> int:
     args = parse_args()
     timestamps, dataset = [], {}
@@ -76,28 +105,8 @@ def main() -> int:
         with open(cache_filename, "wb") as f:
             pickle.dump([timestamps, dataset], f, protocol=pickle.HIGHEST_PROTOCOL)
 
-    print("Showing a chart")
-    fig, axs = plt.subplots(2)
-
-    t = [t - timestamps[0] for t in timestamps]
-    axs[0].plot(t, dataset["GPS2_RAW.eph"], "r", label=["GPS2_RAW.eph"])
-    axs[0].plot(t, dataset["GPS_RAW_INT.eph"], "g", label=["GPS_RAW_INT.eph"])
-    axs[0].legend()
-
-    diffs = [b - a for a, b in zip(dataset["GPS2_RAW.eph"], dataset["GPS_RAW_INT.eph"])]
-    d_min, d_max, d_avg = min(diffs), max(diffs), np.average(np.abs(diffs))
-    axs[1].plot(t, diffs, "r", label=["diffs.eph"])
-    axs[1].legend()
-    axs[1].text(
-        0.01,
-        0.99,
-        f"min={d_min:+}\nmax={d_max:+}\nabs_avg={d_avg:+.2}",
-        ha="left",
-        va="top",
-        transform=axs[1].transAxes,
-    )
-
-    plt.show()
+    os.makedirs(f"{args.tlog}-figs", exist_ok=True)
+    generate_gps2_charts(timestamps, dataset, f"{args.tlog}-figs/fig01.png")
 
     return 0
 
