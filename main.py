@@ -8,6 +8,13 @@ import numpy as np
 
 from telemetry_parser import parse_telemetry
 
+font = {
+    "family": "serif",
+    "color": "darkred",
+    "weight": "normal",
+    "size": 16,
+}
+
 
 def parse_args():
     """
@@ -55,7 +62,7 @@ def main() -> int:
     cache_filename = f"{args.tlog}.h{args.head}.pickle"
     if not args.no_cache and os.path.isfile(cache_filename):
         print("Using cached values already processed for this tlog file")
-        with open(cache_filename, 'rb') as f:
+        with open(cache_filename, "rb") as f:
             timestamps, dataset = pickle.load(f)
     else:
         timestamps, dataset = parse_telemetry(
@@ -73,10 +80,8 @@ def main() -> int:
             ],
             head=args.head,
         )
-        with open(cache_filename, 'wb') as f:
+        with open(cache_filename, "wb") as f:
             pickle.dump([timestamps, dataset], f, protocol=pickle.HIGHEST_PROTOCOL)
-
-
 
     print("Showing a chart")
     fig, axs = plt.subplots(2)
@@ -84,11 +89,12 @@ def main() -> int:
     t = [t - timestamps[0] for t in timestamps]
     axs[0].plot(t, dataset["GPS2_RAW.eph"], "r", label=["GPS2_RAW.eph"])
     axs[0].plot(t, dataset["GPS_RAW_INT.eph"], "g", label=["GPS_RAW_INT.eph"])
-    axs[0].legend()
 
-    diffs = [b - a for a,b in zip(dataset["GPS2_RAW.eph"], dataset["GPS_RAW_INT.eph"])]
+    diffs = [b - a for a, b in zip(dataset["GPS2_RAW.eph"], dataset["GPS_RAW_INT.eph"])]
+    d_min, d_max, d_avg = min(diffs), max(diffs), np.average(np.abs(diffs))
     axs[1].plot(t, diffs, "r", label=["diffs.eph"])
-    axs[1].legend()
+    axs[1].text(.01, .99, f"min={d_min:+}\nmax={d_max:+}\nabs_avg={d_avg:+.2}", ha='left', va='top', transform=axs[1].transAxes)
+
     plt.show()
 
     return 0
