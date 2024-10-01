@@ -8,13 +8,6 @@ import numpy as np
 
 from telemetry_parser import parse_telemetry
 
-font = {
-    "family": "serif",
-    "color": "darkred",
-    "weight": "normal",
-    "size": 16,
-}
-
 
 def parse_args():
     """
@@ -89,11 +82,20 @@ def main() -> int:
     t = [t - timestamps[0] for t in timestamps]
     axs[0].plot(t, dataset["GPS2_RAW.eph"], "r", label=["GPS2_RAW.eph"])
     axs[0].plot(t, dataset["GPS_RAW_INT.eph"], "g", label=["GPS_RAW_INT.eph"])
+    axs[0].legend()
 
     diffs = [b - a for a, b in zip(dataset["GPS2_RAW.eph"], dataset["GPS_RAW_INT.eph"])]
     d_min, d_max, d_avg = min(diffs), max(diffs), np.average(np.abs(diffs))
     axs[1].plot(t, diffs, "r", label=["diffs.eph"])
-    axs[1].text(.01, .99, f"min={d_min:+}\nmax={d_max:+}\nabs_avg={d_avg:+.2}", ha='left', va='top', transform=axs[1].transAxes)
+    axs[1].legend()
+    axs[1].text(
+        0.01,
+        0.99,
+        f"min={d_min:+}\nmax={d_max:+}\nabs_avg={d_avg:+.2}",
+        ha="left",
+        va="top",
+        transform=axs[1].transAxes,
+    )
 
     plt.show()
 
