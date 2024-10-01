@@ -109,6 +109,17 @@ def main() -> int:
         with open(cache_filename, "wb") as f:
             pickle.dump([timestamps, dataset], f, protocol=pickle.HIGHEST_PROTOCOL)
 
+    # save raw data to csv
+    print(f"Saving data to {args.tlog}.csv (takes some time)")
+    np.savetxt(
+        f"{args.tlog}.csv",
+        np.transpose([timestamps, *dataset.values()]),
+        delimiter=",",
+        fmt="%s",
+        header=",".join(["timestamp", *dataset.keys()]),
+        comments="",
+    )
+
     os.makedirs(f"{args.tlog}-figs", exist_ok=True)
     generate_gps2_charts(timestamps, dataset, f"{args.tlog}-figs/fig01.png")
 
