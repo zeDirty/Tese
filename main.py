@@ -100,7 +100,7 @@ def generate_comparison_charts(timestamps, dataset, units, similar_pairs, filena
         # Add difference info as text in the subplot
         axs[idx].text(
             0.02, 0.95,
-            f"min = {d_min:+}\nmax = {d_max:+}\nabs_avg = {d_avg:+.2f}",
+            f"min = {round(d_min,2):+}\nmax = {round(d_max,2):+}\nabs_avg = {round(d_avg,2):+}",
             ha="left",
             va="top",
             transform=axs[idx].transAxes,
