@@ -14,7 +14,7 @@ def parse_fields(fields: list[str]) -> dict[str, set]:
 
 def parse_telemetry(
     tlog_file: str, fields: list[str], head=-1
-) -> tuple[list[float], dict[str, list]]:
+) -> tuple[list[float], dict[str, list], dict[str, str]]:
     mlog = mavutil.mavlink_connection(
         tlog_file,
         dialect="ardupilotmega",
@@ -64,4 +64,10 @@ def parse_telemetry(
                 dataset[field][:j] = [v] * (j)
                 break
 
-    return tstamps, dataset
+    units = {}
+    for typ in msg_types:
+        for field in msg_types[typ]:
+            unit = mlog.messages[typ].fieldunits_by_name.get(field)
+            units[f"{typ}.{field}"] = unit
+
+    return tstamps, dataset, units
