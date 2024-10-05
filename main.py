@@ -47,7 +47,7 @@ def parse_args():
 
     return parsed
 
-def save2csv(filename, timestamps, dataset):
+def save2csv(filename, timestamps, dataset, units):
     print(f"Saving data to {filename} (takes some time)")
     np.savetxt(
         f"{filename}",
@@ -59,7 +59,7 @@ def save2csv(filename, timestamps, dataset):
     )
 
 
-def generate_comparison_charts(timestamps, dataset, similar_pairs, filename_prefix):
+def generate_comparison_charts(timestamps, dataset, units, similar_pairs, filename_prefix):
     if not timestamps or not dataset:
         print("Error: Timestamps or dataset is empty. Please check the telemetry parsing.")
         return
@@ -109,9 +109,8 @@ def generate_comparison_charts(timestamps, dataset, similar_pairs, filename_pref
         )
 
         # Set labels
-        axs[idx].set_ylabel('Value')
-        if idx == num_comparisons - 1:
-            axs[idx].set_xlabel('Time (s)')
+        axs[idx].set_ylabel(units[param1])
+        axs[idx].set_xlabel('Time (s)')
 
     # Set the overall title for the entire figure
     fig.suptitle("Parameter Comparisons", fontsize=16)
@@ -125,16 +124,16 @@ def generate_comparison_charts(timestamps, dataset, similar_pairs, filename_pref
 
 def main() -> int:
     args = parse_args()
-    timestamps, dataset = [], {}
+    timestamps, dataset, units = [], {}, {}
 
     cache_filename = f"{args.tlog}.h{args.head}.pickle"
     if not args.no_cache and os.path.isfile(cache_filename):
         print("Using cached values already processed for this tlog file")
         with open(cache_filename, "rb") as f:
-            timestamps, dataset = pickle.load(f)
+            timestamps, dataset, units = pickle.load(f)
     else:
         print("Parsing telemetry data from tlog...")
-        timestamps, dataset = parse_telemetry(
+        timestamps, dataset, units = parse_telemetry(
             args.tlog,
             fields = [
                 "VFR_HUD.heading",
@@ -158,7 +157,7 @@ def main() -> int:
         )
         print("Caching parsed data...")
         with open(cache_filename, "wb") as f:
-            pickle.dump([timestamps, dataset], f, protocol=pickle.HIGHEST_PROTOCOL)
+            pickle.dump([timestamps, dataset, units], f, protocol=pickle.HIGHEST_PROTOCOL)
 
     # Validate dataset contents
     if not timestamps or not dataset:
@@ -197,11 +196,11 @@ def main() -> int:
             print(f"Warning: Data missing for pair: {param1}, {param2}")
 
     # save raw data to csv
-    save2csv(f"{args.tlog}.csv", timestamps, dataset)
+    save2csv(f"{args.tlog}.csv", timestamps, dataset, units)
 
     # Create output directory for figures
     os.makedirs(f"{args.tlog}-figs", exist_ok=True)
-    generate_comparison_charts(timestamps, dataset, similar_pairs, f"{args.tlog}-figs/fig01")
+    generate_comparison_charts(timestamps, dataset, units, similar_pairs, f"{args.tlog}-figs/fig01")
 
     return 0
 
