@@ -195,6 +195,17 @@ def main() -> int:
         if param1 not in dataset or param2 not in dataset:
             print(f"Warning: Data missing for pair: {param1}, {param2}")
 
+    # Normalize units
+    for field in dataset:
+        if not units[field]:
+            continue
+        if units[field].startswith("cm"):
+            dataset[field] = np.divide(dataset[field], 100)
+            units[field] = units[field][1:]
+        elif units[field].startswith("mm"):
+            dataset[field] = np.divide(dataset[field], 1000)
+            units[field] = units[field][1:]
+
     # save raw data to csv
     save2csv(f"{args.tlog}.csv", timestamps, dataset, units)
 
