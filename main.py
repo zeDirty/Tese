@@ -95,12 +95,12 @@ def generate_comparison_charts(timestamps, dataset, units, similar_pairs, filena
 
         # Calculate differences
         diffs = [b - a for a, b in zip(data1, data2)]
-        d_min, d_max, d_avg = min(diffs), max(diffs), np.average(np.abs(diffs))
+        d_min, d_max, d_avg, d_aavg = min(diffs), max(diffs), np.average(diffs), np.average(np.abs(diffs))
 
         # Add difference info as text in the subplot
         axs[idx].text(
             0.02, 0.95,
-            f"min = {round(d_min,2):+}\nmax = {round(d_max,2):+}\nabs_avg = {round(d_avg,2):+}",
+            f"min = {round(d_min,2):+}\nmax = {round(d_max,2):+}\navg = {round(d_avg,2):+}\nabs_avg = {round(d_aavg,2):+}",
             ha="left",
             va="top",
             transform=axs[idx].transAxes,
