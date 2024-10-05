@@ -109,7 +109,7 @@ def generate_comparison_charts(timestamps, dataset, units, similar_pairs, filena
         )
 
         # Set labels
-        axs[idx].set_ylabel(units[param1])
+        axs[idx].set_ylabel(f"{units[param1]} | {units[param2]}")
         axs[idx].set_xlabel('Time (s)')
 
     # Set the overall title for the entire figure
