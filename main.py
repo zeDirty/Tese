@@ -93,7 +93,7 @@ def main() -> int:
     else:
         timestamps, dataset = parse_telemetry(
             args.tlog,
-            fields=[
+            fields = [
                 "VFR_HUD.heading",
                 "VFR_HUD.alt",
                 "VFR_HUD.climb",
@@ -103,6 +103,13 @@ def main() -> int:
                 "GLOBAL_POSITION_INT.vx",
                 "GPS2_RAW.eph",
                 "GPS_RAW_INT.eph",
+                "GPS2_RAW.vel",
+                "GPS_RAW_INT.vel",
+                "AHRS3.altitude",
+                "GPS2_RAW.alt",
+                "GPS_RAW_INT.alt",
+                "GPS2_RAW.satellites_visible",
+                "GPS_RAW_INT.satellites_visible",
             ],
             head=args.head,
         )
