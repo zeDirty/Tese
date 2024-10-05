@@ -2,6 +2,7 @@
 import os
 import pickle
 from argparse import ArgumentParser
+from datetime import datetime, timezone
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -49,17 +50,19 @@ def parse_args():
 
 def save2csv(filename, timestamps, dataset, units):
     print(f"Saving data to {filename} (takes some time)")
+    readable_timestamp = [datetime.fromtimestamp(ts, tz=timezone.utc).strftime('%Y-%m-%d %H:%M:%S') for ts in timestamps]
+
     np.savetxt(
         f"{filename}",
-        np.transpose([timestamps, *dataset.values()]),
+        np.transpose([timestamps, readable_timestamp, *dataset.values()]),
         delimiter=",",
         fmt="%s",
-        header=",".join(["timestamp", *dataset.keys()]),
+        header=",".join(["timestamp", "datetime", *dataset.keys()]),
         comments="",
     )
 
 
-def generate_comparison_charts(timestamps, dataset, units, similar_pairs, filename_prefix):
+def generate_comparison_charts(timestamps, dataset, units, similar_pairs, anomalies, filename_prefix):
     if not timestamps or not dataset:
         print("Error: Timestamps or dataset is empty. Please check the telemetry parsing.")
         return
@@ -82,6 +85,8 @@ def generate_comparison_charts(timestamps, dataset, units, similar_pairs, filena
         # Extract data for both parameters
         data1 = dataset.get(param1)
         data2 = dataset.get(param2)
+        anomalies1 = anomalies.get(param1,[])
+        anomalies2 = anomalies.get(param2,[])
 
         if data1 is None or data2 is None:
             print(f"Warning: Missing data for parameters {param1} or {param2}. Skipping this comparison.")
@@ -89,8 +94,10 @@ def generate_comparison_charts(timestamps, dataset, units, similar_pairs, filena
 
         # Plot the two parameters
         axs[idx].set_title(title)
-        axs[idx].plot(t, data1, 'r', label=f"{param1}", linewidth=1)
-        axs[idx].plot(t, data2, 'g', label=f"{param2}", linewidth=1)
+        axs[idx].plot(t, anomalies1, 'darkred', label=f"anomalies {param1}", linewidth=5)
+        axs[idx].plot(t, anomalies2, 'darkgreen', label=f"anomalies {param2}", linewidth=5)
+        axs[idx].plot(t, data1, 'red', label=f"{param1}", linewidth=1)
+        axs[idx].plot(t, data2, 'mediumseagreen', label=f"{param2}", linewidth=1)
         axs[idx].legend()
 
         # Calculate differences
@@ -190,6 +197,63 @@ def main() -> int:
         ('GPS2_RAW.satellites_visible', 'GPS_RAW_INT.satellites_visible'): 'GPS2 RAW vs GPS RAW visible satellites comparison'
     }
 
+    anomaly_thresholds = {
+        #variação de velocidade??
+        # SPEED AIRSPEED_AUTOCAL
+        #'AIRSPEED_AUTOCAL.vx': (0, 3.8),  #x-direction (m/s) -29.15 33.16 (mean 0.08)
+        #'AIRSPEED_AUTOCAL.vy': (0, 3.8),  #y-direction (m/s) -28.26 33.19 mean 0.01
+        #'AIRSPEED_AUTOCAL.vz': (0, 3.8),  #z-direction (m/s) -5.69 5.88 mean 0
+
+        # SPEED GLOBAL_POSITION_INT
+        #'GLOBAL_POSITION_INT.vx': (0, 3.8),  #x-direction (cm/s) -2946 3312 mean 5.81
+        #'GLOBAL_POSITION_INT.vy': (0, 3.8),  #y-direction (cm/s) -2841 3332 mean 1.35
+        #'GLOBAL_POSITION_INT.vz': (0, 3.8),  #z-direction (cm/s) -670 577 mean 0.45
+
+        # SPEED LOCAL_POSITION_NED
+        #'LOCAL_POSITION_NED.vx': (0, 3.8),  #x-direction (m/s) -29.47 33.13 mean 0.06
+        #'LOCAL_POSITION_NED.vy': (0, 3.8),  #y-direction (m/s) -28.42 33.33 mean 0.02
+        #'LOCAL_POSITION_NED.vz': (0, 3.8),  #z-direction (m/s) -6.71 5.78 mean 0
+
+        # SPEED GPS2_RAW and GPS_RAW_INT
+        'GPS2_RAW.vel': (21.606, 39.098),  #Threshold for GPS-derived groundspeed (cm/s) similar to: GPS_RAW_INT.vel and VFR_HUD.groundspeed
+        'GPS_RAW_INT.vel': (21.606, 39.098),  #Threshold for GPS-derived groundspeed (cm/s) similar to: GPS2_RAW.vel and VFR_HUD.groundspeed
+
+        # SPEED VFR_HUD
+        'VFR_HUD.airspeed': (21.606, 39.098),  #42 and 76 knots 21.606, 39.098 (m/s)
+        'VFR_HUD.groundspeed': (21.606, 39.098),  #(m/s) similar to: GPS_RAW_INT.vel and GPS2_RAW.vel
+
+        # Accelerometers RAW_IMU
+        #'RAW_IMU.xacc': (0, 3.8),  # Threshold x-axis (0 to 3.8 g) verificar unidades??? -11500 e 500
+        #'RAW_IMU.yacc': (0, 3.8),  # Threshold y-axis (0 to 3.8 g) -1000 e 3000
+        #'RAW_IMU.zacc': (0, 3.8),  # Threshold z-axis (0 to 3.8 g) -1600 e 200
+
+        # Accelerometers SCALED_IMU2
+        #'SCALED_IMU2.xacc': (0, 3.8),  # Threshold x-axis (0 to 3.8 g) (mG) valores -380 a 501 (spike no final de -11000)
+        #'SCALED_IMU2.yacc': (0, 3.8),  # Threshold y-axis (0 to 3.8 g) (mG) -933 a 1177  (spike no final de 3333)
+        #'SCALED_IMU2.zacc': (0, 3.8),  # Threshold z-axis (0 to 3.8 g) (mG) -1533 a -361
+
+        # ALTITUDE
+        'VFR_HUD.alt': (0, 3078),  # Altitude between 0 and 3078 meters (SIMILAR A AHRS3.altitude)
+        'AHRS3.altitude': (0, 3078),  # Absolute altitude in meters (SIMILAR A VFR_HUD.alt)
+        'GPS_RAW_INT.alt': (0, 3078),  # Altitude in m (SIMILAR A GPS2_RAW)
+        'GPS2_RAW.alt': (0, 3078),  # Absolute altitude in milimeters (SIMILAR A GPS_RAW_INT)
+        'GLOBAL_POSITION_INT.alt': (0, 3078),  # Altitude in milimeters
+        'GLOBAL_POSITION_INT.relative_alt': (0, 3078),  # Relative altitude in milimeters
+        'LOCAL_POSITION_NED.z': (-3078, 0),  # Altitude in local frame
+
+        # HDOP (Horizontal Dilution of Precision)
+        'GPS2_RAW.eph': (0, 10),  # GPS2_RAW eph gps2 raw_t(Min:60 Max: 139 Mean: 75.83)
+        'GPS_RAW_INT.eph': (0, 10),  # GPS_RAW_INT eph gps raw int t(Min:60 Max:142 Mean:75.42)
+
+        #visible satellites
+        'GPS2_RAW.satellites_visible': (5, 20),  # Number of satellites visible in GPS2_RAW (0 to 20)
+        'GPS_RAW_INT.satellites_visible': (5, 20),  # Number of satellites visible in GPS_RAW_INT (0 to 20)
+
+        #Temperaturas
+        'SCALED_PRESSURE.temperature': (4000, 5600),  # cdegC similares (3998; 5558) 4293.4 equivale em Cº (39,98; 55,58) 42,934
+        'SENSOR_OFFSETS.raw_temp': (4000, 5600),  # cdegC similares (4000; 5558) media: 4293.18
+    }
+
     # Check availability of each pair in dataset
     for (param1, param2), title in similar_pairs.items():
         if param1 not in dataset or param2 not in dataset:
@@ -206,15 +270,26 @@ def main() -> int:
             dataset[field] = np.divide(dataset[field], 1000)
             units[field] = units[field][1:]
 
+
+    # Check anomalies
+    print("Checking anomalies")
+    anomalies = {}
+    for anm, th in anomaly_thresholds.items():
+        if anm not in dataset:
+            print(f"{anm} not captured in dataset")
+            continue
+        anomalies[anm] = [ x if x<th[0] or x>th[1] else None for x in dataset[anm]]
+
     # save raw data to csv
     save2csv(f"{args.tlog}.csv", timestamps, dataset, units)
+    save2csv(f"{args.tlog}-anomalies.csv", timestamps, anomalies, units)
 
     # save fields units to file
     np.savetxt(f"{args.tlog}.units.txt", [ f"{_f}, {_u}" for _f,_u in units.items() ], fmt="%s",)
 
     # Create output directory for figures
     os.makedirs(f"{args.tlog}-figs", exist_ok=True)
-    generate_comparison_charts(timestamps, dataset, units, similar_pairs, f"{args.tlog}-figs/fig01")
+    generate_comparison_charts(timestamps, dataset, units, similar_pairs, anomalies, f"{args.tlog}-figs/fig01")
 
     return 0
 
