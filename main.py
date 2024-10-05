@@ -100,7 +100,7 @@ def generate_comparison_charts(timestamps, dataset, units, similar_pairs, filena
         # Add difference info as text in the subplot
         axs[idx].text(
             0.02, 0.95,
-            f"min = {d_min:+}\nmax = {d_max:+}\nabs_avg = {d_avg:+.2f}",
+            f"min = {round(d_min,2):+}\nmax = {round(d_max,2):+}\nabs_avg = {round(d_avg,2):+}",
             ha="left",
             va="top",
             transform=axs[idx].transAxes,
@@ -174,16 +174,16 @@ def main() -> int:
     # Check which pairs are not available in the dataset
     similar_pairs = {
         ##velocity
-        ('GPS2_RAW.vel', 'GPS_RAW_INT.vel'): 'GPS-derived groundspeed comparison (cm/s)',
-        ('GPS2_RAW.vel', 'VFR_HUD.groundspeed'): 'GPS vs VFR HUD groundspeed comparison (m/s)',
-        ('GPS_RAW_INT.vel', 'VFR_HUD.groundspeed'): 'GPS vs VFR HUD groundspeed comparison (m/s)',
+        ('GPS2_RAW.vel', 'GPS_RAW_INT.vel'): 'GPS-derived groundspeed comparison',
+        ('GPS2_RAW.vel', 'VFR_HUD.groundspeed'): 'GPS vs VFR HUD groundspeed comparison',
+        ('GPS_RAW_INT.vel', 'VFR_HUD.groundspeed'): 'GPS vs VFR HUD groundspeed comparison',
         ##altitude
-        ('VFR_HUD.alt', 'AHRS3.altitude'): 'Altitude comparison (meters)',
-        ('GPS_RAW_INT.alt', 'GPS2_RAW.alt'): 'GPS RAW vs GPS2 RAW altitude comparison (millimeters)',
-        ('VFR_HUD.alt', 'GPS_RAW_INT.alt'): 'VFR HUD vs GPS RAW altitude comparison (meters to millimeters)',
-        ('VFR_HUD.alt', 'GPS2_RAW.alt'): 'VFR HUD vs GPS2 RAW altitude comparison (meters to millimeters)',
-        ('AHRS3.altitude', 'GPS_RAW_INT.alt'): 'AHRS3 vs GPS RAW altitude comparison (meters to millimeters)',
-        ('AHRS3.altitude', 'GPS2_RAW.alt'): 'AHRS3 vs GPS2 RAW altitude comparison (meters to millimeters)',
+        ('VFR_HUD.alt', 'AHRS3.altitude'): 'Altitude comparison',
+        ('GPS_RAW_INT.alt', 'GPS2_RAW.alt'): 'GPS RAW vs GPS2 RAW altitude comparison',
+        ('VFR_HUD.alt', 'GPS_RAW_INT.alt'): 'VFR HUD vs GPS RAW altitude comparison',
+        ('VFR_HUD.alt', 'GPS2_RAW.alt'): 'VFR HUD vs GPS2 RAW altitude comparison',
+        ('AHRS3.altitude', 'GPS_RAW_INT.alt'): 'AHRS3 vs GPS RAW altitude comparison',
+        ('AHRS3.altitude', 'GPS2_RAW.alt'): 'AHRS3 vs GPS2 RAW altitude comparison',
         ##HDOP
         ('GPS2_RAW.eph', 'GPS_RAW_INT.eph'): 'GPS2 RAW vs GPS RAW HDOP comparison',
         ##satellites
@@ -194,6 +194,17 @@ def main() -> int:
     for (param1, param2), title in similar_pairs.items():
         if param1 not in dataset or param2 not in dataset:
             print(f"Warning: Data missing for pair: {param1}, {param2}")
+
+    # Normalize units
+    for field in dataset:
+        if not units[field]:
+            continue
+        if units[field].startswith("cm"):
+            dataset[field] = np.divide(dataset[field], 100)
+            units[field] = units[field][1:]
+        elif units[field].startswith("mm"):
+            dataset[field] = np.divide(dataset[field], 1000)
+            units[field] = units[field][1:]
 
     # save raw data to csv
     save2csv(f"{args.tlog}.csv", timestamps, dataset, units)
