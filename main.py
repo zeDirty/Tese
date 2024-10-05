@@ -209,6 +209,9 @@ def main() -> int:
     # save raw data to csv
     save2csv(f"{args.tlog}.csv", timestamps, dataset, units)
 
+    # save fields units to file
+    np.savetxt(f"{args.tlog}.units.txt", [ f"{_f}, {_u}" for _f,_u in units.items() ], fmt="%s",)
+
     # Create output directory for figures
     os.makedirs(f"{args.tlog}-figs", exist_ok=True)
     generate_comparison_charts(timestamps, dataset, units, similar_pairs, f"{args.tlog}-figs/fig01")

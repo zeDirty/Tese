@@ -65,9 +65,9 @@ def parse_telemetry(
                 break
 
     units = {}
-    for typ in msg_types:
-        for field in msg_types[typ]:
-            unit = mlog.messages[typ].fieldunits_by_name.get(field)
+    for typ in mlog.messages:
+        for field in getattr(mlog.messages[typ], "fieldnames", []):
+            unit = getattr(mlog.messages[typ], "fieldunits_by_name", {}).get(field, "-")
             units[f"{typ}.{field}"] = unit
 
     return tstamps, dataset, units
