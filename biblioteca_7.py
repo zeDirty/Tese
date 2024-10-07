@@ -34,9 +34,9 @@ class Telemetry:
         'AIRSPEED_AUTOCAL.vz': (-39.098, 39.098),  #z-direction (m/s) -5.69 5.88 mean 0
 
         # SPEED GLOBAL_POSITION_INT
-        'GLOBAL_POSITION_INT.vx': (-39.098, 39.098),  #x-direction (cm/s) -2946 3312 mean 5.81
-        'GLOBAL_POSITION_INT.vy': (-39.098, 39.098),  #y-direction (cm/s) -2841 3332 mean 1.35
-        'GLOBAL_POSITION_INT.vz': (-39.098, 39.098),  #z-direction (cm/s) -670 577 mean 0.45
+        'GLOBAL_POSITION_INT.vx': (-3909.8, 3909.8),  #x-direction (cm/s) -2946 3312 mean 5.81
+        'GLOBAL_POSITION_INT.vy': (-3909.8, 3909.8),  #y-direction (cm/s) -2841 3332 mean 1.35
+        'GLOBAL_POSITION_INT.vz': (-3909.8, 3909.8),  #z-direction (cm/s) -670 577 mean 0.45
 
         # SPEED LOCAL_POSITION_NED
         'LOCAL_POSITION_NED.vx': (-39.098, 39.098),  #x-direction (m/s) -29.47 33.13 mean 0.06
