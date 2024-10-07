@@ -29,19 +29,19 @@ class Telemetry:
     ANOMALY_THRESHOLDS = {
         #variação de velocidade??
         # SPEED AIRSPEED_AUTOCAL
-        #'AIRSPEED_AUTOCAL.vx': (0, 3.8),  #x-direction (m/s) -29.15 33.16 (mean 0.08)
-        #'AIRSPEED_AUTOCAL.vy': (0, 3.8),  #y-direction (m/s) -28.26 33.19 mean 0.01
-        #'AIRSPEED_AUTOCAL.vz': (0, 3.8),  #z-direction (m/s) -5.69 5.88 mean 0
+        'AIRSPEED_AUTOCAL.vx': (-39.098, 39.098),  #x-direction (m/s) -29.15 33.16 (mean 0.08)
+        'AIRSPEED_AUTOCAL.vy': (-39.098, 39.098),  #y-direction (m/s) -28.26 33.19 mean 0.01
+        'AIRSPEED_AUTOCAL.vz': (-39.098, 39.098),  #z-direction (m/s) -5.69 5.88 mean 0
 
         # SPEED GLOBAL_POSITION_INT
-        #'GLOBAL_POSITION_INT.vx': (0, 3.8),  #x-direction (cm/s) -2946 3312 mean 5.81
-        #'GLOBAL_POSITION_INT.vy': (0, 3.8),  #y-direction (cm/s) -2841 3332 mean 1.35
-        #'GLOBAL_POSITION_INT.vz': (0, 3.8),  #z-direction (cm/s) -670 577 mean 0.45
+        'GLOBAL_POSITION_INT.vx': (-39.098, 39.098),  #x-direction (cm/s) -2946 3312 mean 5.81
+        'GLOBAL_POSITION_INT.vy': (-39.098, 39.098),  #y-direction (cm/s) -2841 3332 mean 1.35
+        'GLOBAL_POSITION_INT.vz': (-39.098, 39.098),  #z-direction (cm/s) -670 577 mean 0.45
 
         # SPEED LOCAL_POSITION_NED
-        #'LOCAL_POSITION_NED.vx': (0, 3.8),  #x-direction (m/s) -29.47 33.13 mean 0.06
-        #'LOCAL_POSITION_NED.vy': (0, 3.8),  #y-direction (m/s) -28.42 33.33 mean 0.02
-        #'LOCAL_POSITION_NED.vz': (0, 3.8),  #z-direction (m/s) -6.71 5.78 mean 0
+        'LOCAL_POSITION_NED.vx': (-39.098, 39.098),  #x-direction (m/s) -29.47 33.13 mean 0.06
+        'LOCAL_POSITION_NED.vy': (-39.098, 39.098),  #y-direction (m/s) -28.42 33.33 mean 0.02
+        'LOCAL_POSITION_NED.vz': (-39.098, 39.098),  #z-direction (m/s) -6.71 5.78 mean 0
 
         # SPEED GPS2_RAW and GPS_RAW_INT
         'GPS2_RAW.vel': (2160.6, 3909.8),  #Threshold for GPS-derived groundspeed (cm/s) similar to: GPS_RAW_INT.vel and VFR_HUD.groundspeed
