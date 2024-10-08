@@ -36,7 +36,7 @@ def parse_telemetry(
             break
         if i % 1000 == 0:
             print(
-                f"Parsing relevant fields ({(mlog.offset if head <= 0 else head)*100/n_entries:.1f}%)\r",
+                f"Parsing relevant fields ({(mlog.offset if head <= 0 else i)*100/n_entries:.1f}%)\r",
                 end="",
             )
 
@@ -90,21 +90,19 @@ def parse_telemetry_bin(
 
     i=0
     for i in range(n_entries):
-        # msg = mlog.recv_match(type=set(msg_types.keys()))
-        msg = mlog.recv_msg()
+        msg = mlog.recv_match(type=set(msg_types.keys()))
+        # msg = mlog.recv_msg()
         if msg is None:
             break
         if i % 1000 == 0:
             print(
-                f"Parsing relevant fields ({(mlog.offset if head <= 0 else head)*100/n_entries:.1f}%)\r",
+                f"Parsing relevant fields ({(mlog.offset if head <= 0 else i)*100/n_entries:.1f}%)\r",
                 end="",
             )
 
-        if hasattr(msg, "msgname") and msg.msgname in msg_types:
-            tstamps[i] = getattr(msg, "_timestamp", None)
-            for fname in msg_types[msg.msgname]:
-                dataset[f"{msg.msgname}.{fname}"][i] = getattr(msg, fname, None)
-# ['Type', 'Length', 'Name', 'Format', 'Columns']
+        tstamps[i] = getattr(msg, "_timestamp", None)
+        for fname in msg_types[msg.get_type()]:
+            dataset[f"{msg.get_type()}.{fname}"][i] = getattr(msg, fname, None)
 
     print("Parsed all relevant fields         ")
 
@@ -128,7 +126,7 @@ def parse_telemetry_bin(
 
     units = {}
     for typ in mlog.messages:
-        for field in getattr(mlog.messages[typ], "fieldnames", []):
+        for field in getattr(mlog.messages[typ], "_fieldnames", []):
             unit = getattr(mlog.messages[typ], "fieldunits_by_name", {}).get(field, "-")
             units[f"{typ}.{field}"] = unit
 
