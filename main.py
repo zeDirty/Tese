@@ -181,6 +181,15 @@ def main() -> int:
     # Check which pairs are not available in the dataset
     similar_pairs = {
         ##velocity
+        ('AIRSPEED_AUTOCAL.vx', 'GLOBAL_POSITION_INT.vx'): 'AUTOCAL vs GLOBAL_POSITION x-direction',
+        ('AIRSPEED_AUTOCAL.vx', 'LOCAL_POSITION_NED.vx'): 'AUTOCAL vs LOCAL_POSITION x-direction',
+        ('GLOBAL_POSITION_INT.vx', 'LOCAL_POSITION_NED.vx'): 'GLOBAL_POSITION vs LOCAL_POSITION x-direction',
+        ('AIRSPEED_AUTOCAL.vy', 'GLOBAL_POSITION_INT.vy'): 'AUTOCAL vs GLOBAL_POSITION y-direction',
+        ('AIRSPEED_AUTOCAL.vy', 'LOCAL_POSITION_NED.vy'): 'AUTOCAL vs LOCAL_POSITION y-direction',
+        ('GLOBAL_POSITION_INT.vy', 'LOCAL_POSITION_NED.vy'): 'GLOBAL_POSITION vs LOCAL_POSITION y-direction',
+        ('AIRSPEED_AUTOCAL.vz', 'GLOBAL_POSITION_INT.vz'): 'AUTOCAL vs GLOBAL_POSITION z-direction',
+        ('AIRSPEED_AUTOCAL.vz', 'LOCAL_POSITION_NED.vz'): 'AUTOCAL vs LOCAL_POSITION z-direction',
+        ('GLOBAL_POSITION_INT.vz', 'LOCAL_POSITION_NED.vz'): 'GLOBAL_POSITION vs LOCAL_POSITION z-direction',        
         ('GPS2_RAW.vel', 'GPS_RAW_INT.vel'): 'GPS-derived groundspeed comparison',
         ('GPS2_RAW.vel', 'VFR_HUD.groundspeed'): 'GPS vs VFR HUD groundspeed comparison',
         ('GPS_RAW_INT.vel', 'VFR_HUD.groundspeed'): 'GPS vs VFR HUD groundspeed comparison',
@@ -194,25 +203,27 @@ def main() -> int:
         ##HDOP
         ('GPS2_RAW.eph', 'GPS_RAW_INT.eph'): 'GPS2 RAW vs GPS RAW HDOP comparison',
         ##satellites
-        ('GPS2_RAW.satellites_visible', 'GPS_RAW_INT.satellites_visible'): 'GPS2 RAW vs GPS RAW visible satellites comparison'
+        ('GPS2_RAW.satellites_visible', 'GPS_RAW_INT.satellites_visible'): 'GPS2 RAW vs GPS RAW visible satellites comparison',
+        ##Temperaturas
+        ('SCALED_PRESSURE.temperature', 'SENSOR_OFFSETS.raw_temp'): 'Temperatures'
     }
 
     anomaly_thresholds = {
         #variação de velocidade??
         # SPEED AIRSPEED_AUTOCAL
-        #'AIRSPEED_AUTOCAL.vx': (0, 3.8),  #x-direction (m/s) -29.15 33.16 (mean 0.08)
-        #'AIRSPEED_AUTOCAL.vy': (0, 3.8),  #y-direction (m/s) -28.26 33.19 mean 0.01
-        #'AIRSPEED_AUTOCAL.vz': (0, 3.8),  #z-direction (m/s) -5.69 5.88 mean 0
+        'AIRSPEED_AUTOCAL.vx': (-39.098, 39.098),  #x-direction (m/s) -29.15 33.16 (mean 0.08)
+        'AIRSPEED_AUTOCAL.vy': (-39.098, 39.098),  #y-direction (m/s) -28.26 33.19 mean 0.01
+        'AIRSPEED_AUTOCAL.vz': (-39.098, 39.098),  #z-direction (m/s) -5.69 5.88 mean 0
 
         # SPEED GLOBAL_POSITION_INT
-        #'GLOBAL_POSITION_INT.vx': (0, 3.8),  #x-direction (cm/s) -2946 3312 mean 5.81
-        #'GLOBAL_POSITION_INT.vy': (0, 3.8),  #y-direction (cm/s) -2841 3332 mean 1.35
-        #'GLOBAL_POSITION_INT.vz': (0, 3.8),  #z-direction (cm/s) -670 577 mean 0.45
+        'GLOBAL_POSITION_INT.vx': (-3909.8, 3909.8),  #x-direction (cm/s) -2946 3312 mean 5.81
+        'GLOBAL_POSITION_INT.vy': (-3909.8, 3909.8),  #y-direction (cm/s) -2841 3332 mean 1.35
+        'GLOBAL_POSITION_INT.vz': (-3909.8, 3909.8),  #z-direction (cm/s) -670 577 mean 0.45
 
         # SPEED LOCAL_POSITION_NED
-        #'LOCAL_POSITION_NED.vx': (0, 3.8),  #x-direction (m/s) -29.47 33.13 mean 0.06
-        #'LOCAL_POSITION_NED.vy': (0, 3.8),  #y-direction (m/s) -28.42 33.33 mean 0.02
-        #'LOCAL_POSITION_NED.vz': (0, 3.8),  #z-direction (m/s) -6.71 5.78 mean 0
+        'LOCAL_POSITION_NED.vx': (-39.098, 39.098),  #x-direction (m/s) -29.47 33.13 mean 0.06
+        'LOCAL_POSITION_NED.vy': (-39.098, 39.098),  #y-direction (m/s) -28.42 33.33 mean 0.02
+        'LOCAL_POSITION_NED.vz': (-39.098, 39.098),  #z-direction (m/s) -6.71 5.78 mean 0
 
         # SPEED GPS2_RAW and GPS_RAW_INT
         'GPS2_RAW.vel': (21.606, 39.098),  #Threshold for GPS-derived groundspeed (cm/s) similar to: GPS_RAW_INT.vel and VFR_HUD.groundspeed
