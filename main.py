@@ -143,6 +143,15 @@ def main() -> int:
         timestamps, dataset, units = parse_telemetry(
             args.tlog,
             fields = [
+                "AIRSPEED_AUTOCAL.vx", 
+                "AIRSPEED_AUTOCAL.vy",  
+                "AIRSPEED_AUTOCAL.vz",  
+                "GLOBAL_POSITION_INT.vx",  
+                "GLOBAL_POSITION_INT.vy",  
+                "GLOBAL_POSITION_INT.vz",  
+                "LOCAL_POSITION_NED.vx",  
+                "LOCAL_POSITION_NED.vy",  
+                "LOCAL_POSITION_NED.vz",  
                 "VFR_HUD.heading",
                 "VFR_HUD.alt",
                 "VFR_HUD.climb",
@@ -159,6 +168,9 @@ def main() -> int:
                 "GPS_RAW_INT.alt",
                 "GPS2_RAW.satellites_visible",
                 "GPS_RAW_INT.satellites_visible",
+                "SCALED_PRESSURE.temperature",
+                "SENSOR_OFFSETS.raw_temp",
+
             ],
             head=args.head,
         )
