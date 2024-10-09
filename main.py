@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 import matplotlib.pyplot as plt
 import numpy as np
 
-from telemetry_parser import parse_telemetry
+from telemetry_parser import parse_telemetry, parse_telemetry_bin
 
 
 def parse_args():
@@ -19,8 +19,14 @@ def parse_args():
     parser.add_argument(
         "-t",
         "--tlog",
-        required=True,
+        required=False,
         help="Tlog filename or path to parse",
+    )
+    parser.add_argument(
+        "-b",
+        "--bin",
+        required=False,
+        help="Bin filename or path to parse",
     )
     parser.add_argument(
         "--head",
@@ -133,50 +139,86 @@ def main() -> int:
     args = parse_args()
     timestamps, dataset, units = [], {}, {}
 
-    cache_filename = f"{args.tlog}.h{args.head}.pickle"
-    if not args.no_cache and os.path.isfile(cache_filename):
-        print("Using cached values already processed for this tlog file")
-        with open(cache_filename, "rb") as f:
-            timestamps, dataset, units = pickle.load(f)
-    else:
-        print("Parsing telemetry data from tlog...")
-        timestamps, dataset, units = parse_telemetry(
-            args.tlog,
-            fields = [
-                "AIRSPEED_AUTOCAL.vx", 
-                "AIRSPEED_AUTOCAL.vy",  
-                "AIRSPEED_AUTOCAL.vz",  
-                "GLOBAL_POSITION_INT.vx",  
-                "GLOBAL_POSITION_INT.vy",  
-                "GLOBAL_POSITION_INT.vz",  
-                "LOCAL_POSITION_NED.vx",  
-                "LOCAL_POSITION_NED.vy",  
-                "LOCAL_POSITION_NED.vz",  
-                "VFR_HUD.heading",
-                "VFR_HUD.alt",
-                "VFR_HUD.climb",
-                "VFR_HUD.groundspeed",
-                "VFR_HUD.airspeed",
-                "VFR_HUD.throttle",
-                "GLOBAL_POSITION_INT.vx",
-                "GPS2_RAW.eph",
-                "GPS_RAW_INT.eph",
-                "GPS2_RAW.vel",
-                "GPS_RAW_INT.vel",
-                "AHRS3.altitude",
-                "GPS2_RAW.alt",
-                "GPS_RAW_INT.alt",
-                "GPS2_RAW.satellites_visible",
-                "GPS_RAW_INT.satellites_visible",
-                "SCALED_PRESSURE.temperature",
-                "SENSOR_OFFSETS.raw_temp",
+    if not args.tlog and not args.bin:
+        print("--bin or --tlog is mandatory")
+        return 1
+    if args.tlog and args.bin:
+        print("--bin and --tlog are mutually exclusive")
+        return 1
 
-            ],
-            head=args.head,
-        )
-        print("Caching parsed data...")
-        with open(cache_filename, "wb") as f:
-            pickle.dump([timestamps, dataset, units], f, protocol=pickle.HIGHEST_PROTOCOL)
+    if args.tlog:
+        cache_filename = f"{args.tlog}.h{args.head}.pickle"
+        if not args.no_cache and os.path.isfile(cache_filename):
+            print("Using cached values already processed for this tlog file")
+            with open(cache_filename, "rb") as f:
+                timestamps, dataset, units = pickle.load(f)
+        else:
+            print("Parsing telemetry data from tlog...")
+            timestamps, dataset, units = parse_telemetry(
+                args.tlog,
+                fields = [
+                    "AIRSPEED_AUTOCAL.vx", 
+                    "AIRSPEED_AUTOCAL.vy",  
+                    "AIRSPEED_AUTOCAL.vz",  
+                    "GLOBAL_POSITION_INT.vx",  
+                    "GLOBAL_POSITION_INT.vy",  
+                    "GLOBAL_POSITION_INT.vz",  
+                    "LOCAL_POSITION_NED.vx",  
+                    "LOCAL_POSITION_NED.vy",  
+                    "LOCAL_POSITION_NED.vz",  
+                    "VFR_HUD.heading",
+                    "VFR_HUD.alt",
+                    "VFR_HUD.climb",
+                    "VFR_HUD.groundspeed",
+                    "VFR_HUD.airspeed",
+                    "VFR_HUD.throttle",
+                    "GLOBAL_POSITION_INT.vx",
+                    "GPS2_RAW.eph",
+                    "GPS_RAW_INT.eph",
+                    "GPS2_RAW.vel",
+                    "GPS_RAW_INT.vel",
+                    "AHRS3.altitude",
+                    "GPS2_RAW.alt",
+                    "GPS_RAW_INT.alt",
+                    "GPS2_RAW.satellites_visible",
+                    "GPS_RAW_INT.satellites_visible",
+                    "SCALED_PRESSURE.temperature",
+                    "SENSOR_OFFSETS.raw_temp",
+                ],
+                head=args.head,
+            )
+            print("Caching parsed data...")
+            with open(cache_filename, "wb") as f:
+                pickle.dump([timestamps, dataset, units], f, protocol=pickle.HIGHEST_PROTOCOL)
+    elif args.bin:
+        cache_filename = f"{args.bin}.h{args.head}.bin.pickle"
+        if not args.no_cache and os.path.isfile(cache_filename):
+            print("Using cached values already processed for this bin file")
+            with open(cache_filename, "rb") as f:
+                timestamps, dataset, units = pickle.load(f)
+        else:
+            print("Parsing telemetry data from bin...")
+            timestamps, dataset, units = parse_telemetry_bin(
+                args.bin,
+                fields = [
+                    "IMU.AccX",
+                    "IMU.AccY",
+                    "IMU.AccZ",
+                    "IMU2.AccX",
+                    "IMU2.AccY",
+                    "IMU2.AccZ",
+                    "STAT.isFlying",
+                    "STAT.isFlyProb",
+                    "STAT.Armed",
+                    "STAT.Stage",
+                ],
+                head=args.head,
+            )
+            print("Caching parsed data...")
+            with open(cache_filename, "wb") as f:
+                pickle.dump([timestamps, dataset, units], f, protocol=pickle.HIGHEST_PROTOCOL)
+
+
 
     # Validate dataset contents
     if not timestamps or not dataset:
@@ -201,7 +243,7 @@ def main() -> int:
         ('GLOBAL_POSITION_INT.vy', 'LOCAL_POSITION_NED.vy'): 'GLOBAL_POSITION vs LOCAL_POSITION y-direction',
         ('AIRSPEED_AUTOCAL.vz', 'GLOBAL_POSITION_INT.vz'): 'AUTOCAL vs GLOBAL_POSITION z-direction',
         ('AIRSPEED_AUTOCAL.vz', 'LOCAL_POSITION_NED.vz'): 'AUTOCAL vs LOCAL_POSITION z-direction',
-        ('GLOBAL_POSITION_INT.vz', 'LOCAL_POSITION_NED.vz'): 'GLOBAL_POSITION vs LOCAL_POSITION z-direction',        
+        ('GLOBAL_POSITION_INT.vz', 'LOCAL_POSITION_NED.vz'): 'GLOBAL_POSITION vs LOCAL_POSITION z-direction',
         ('GPS2_RAW.vel', 'GPS_RAW_INT.vel'): 'GPS-derived groundspeed comparison',
         ('GPS2_RAW.vel', 'VFR_HUD.groundspeed'): 'GPS vs VFR HUD groundspeed comparison',
         ('GPS_RAW_INT.vel', 'VFR_HUD.groundspeed'): 'GPS vs VFR HUD groundspeed comparison',
