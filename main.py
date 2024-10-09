@@ -301,6 +301,9 @@ def main() -> int:
         if anm not in dataset:
             print(f"{anm} not captured in dataset")
             continue
+        if len(th) != 2:
+            print(f"Invalid threshold for {anm}: {th}")
+            continue
         anomalies[anm] = [ x if x<th[0] or x>th[1] else None for x in dataset[anm]]
 
     # save raw data to csv
