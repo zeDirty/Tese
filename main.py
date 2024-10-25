@@ -95,7 +95,7 @@ def generate_comparison_charts(timestamps, dataset, units, similar_pairs, anomal
         anomalies2 = anomalies.get(param2,[])
 
         if data1 is None or data2 is None:
-            print(f"Warning: Missing data for parameters {param1} or {param2}. Skipping this comparison.")
+            # print(f"Warning: Missing data for parameters {param1} or {param2}. Skipping this comparison.")
             continue
 
         # Plot the two parameters
@@ -139,6 +139,7 @@ def main() -> int:
     args = parse_args()
     timestamps, dataset, units = [], {}, {}
 
+    input_filename=""
     if not args.tlog and not args.bin:
         print("--bin or --tlog is mandatory")
         return 1
@@ -147,7 +148,8 @@ def main() -> int:
         return 1
 
     if args.tlog:
-        cache_filename = f"{args.tlog}.h{args.head}.pickle"
+        input_filename=args.tlog
+        cache_filename = f"{input_filename}.h{args.head}.pickle"
         if not args.no_cache and os.path.isfile(cache_filename):
             print("Using cached values already processed for this tlog file")
             with open(cache_filename, "rb") as f:
@@ -155,7 +157,7 @@ def main() -> int:
         else:
             print("Parsing telemetry data from tlog...")
             timestamps, dataset, units = parse_telemetry(
-                args.tlog,
+                input_filename,
                 fields = [
                     "AIRSPEED_AUTOCAL.vx", 
                     "AIRSPEED_AUTOCAL.vy",  
@@ -195,7 +197,8 @@ def main() -> int:
             with open(cache_filename, "wb") as f:
                 pickle.dump([timestamps, dataset, units], f, protocol=pickle.HIGHEST_PROTOCOL)
     elif args.bin:
-        cache_filename = f"{args.bin}.h{args.head}.bin.pickle"
+        input_filename=args.bin
+        cache_filename = f"{input_filename}.h{args.head}.bin.pickle"
         if not args.no_cache and os.path.isfile(cache_filename):
             print("Using cached values already processed for this bin file")
             with open(cache_filename, "rb") as f:
@@ -203,7 +206,7 @@ def main() -> int:
         else:
             print("Parsing telemetry data from bin...")
             timestamps, dataset, units = parse_telemetry_bin(
-                args.bin,
+                input_filename,
                 fields = [
                     "IMU.AccX",
                     "IMU.AccY",
@@ -224,8 +227,6 @@ def main() -> int:
             with open(cache_filename, "wb") as f:
                 pickle.dump([timestamps, dataset, units], f, protocol=pickle.HIGHEST_PROTOCOL)
 
-
-
     # Validate dataset contents
     if not timestamps or not dataset:
         print("Error: No data available after parsing the telemetry file.")
@@ -237,6 +238,9 @@ def main() -> int:
     # Print sample values for each key in the dataset
     for key in dataset:
         print(f"Key: {key}, Length: {len(dataset[key])}, Sample: {dataset[key][:5]}")
+
+    similar_pairs_bin = {
+    }
 
     # Check which pairs are not available in the dataset
     similar_pairs = {
@@ -269,11 +273,22 @@ def main() -> int:
         ##satellites
         ('GPS2_RAW.satellites_visible', 'GPS_RAW_INT.satellites_visible'): 'GPS2 RAW vs GPS RAW visible satellites comparison',
         ##Temperaturas
-        ('SCALED_PRESSURE.temperature', 'SENSOR_OFFSETS.raw_temp'): 'Temperatures'
+        ('SCALED_PRESSURE.temperature', 'SENSOR_OFFSETS.raw_temp'): 'Temperatures',
+
+
+        ##acceleration
+        ('IMU.AccX', 'IMU2.AccX'): 'IMU vs IMU2 X acelaration comparison',
+        ('IMU.AccY', 'IMU2.AccY'): 'IMU vs IMU2 Y acelaration comparison',
+        ('IMU.AccZ', 'IMU2.AccZ'): 'IMU vs IMU2 Z acelaration comparison',
+        ##HDOP
+        ('GPS.HDop', 'GPS2.HDop'): 'GPS vs GPS2 HDOP comparison',
+
+    }
+
+    anomaly_thresholds_bin = {
     }
 
     anomaly_thresholds = {
-        #variação de velocidade??
         # SPEED AIRSPEED_AUTOCAL
         'AIRSPEED_AUTOCAL.vx': (-39.098, 39.098),  #x-direction (m/s) -29.15 33.16 (mean 0.08)
         'AIRSPEED_AUTOCAL.vy': (-39.098, 39.098),  #y-direction (m/s) -28.26 33.19 mean 0.01
@@ -296,7 +311,7 @@ def main() -> int:
         # SPEED VFR_HUD
         'VFR_HUD.airspeed': (21.606, 39.098),  #42 and 76 knots 21.606, 39.098 (m/s)
         'VFR_HUD.groundspeed': (21.606, 39.098),  #(m/s) similar to: GPS_RAW_INT.vel and GPS2_RAW Accelerometers Threshold x-axis (0 to 3.8 g) verificar unidades??? -11500 e 500
-        
+
         # Accelerometers RAW_IMU
         'RAW_IMU.xacc': (-980, 980),  # Threshold x-axis (0 to 3.8 g) verificar unidades??? -11500 e 500
         'RAW_IMU.yacc': (-980, 980),  # Threshold y-axis (0 to 3.8 g) -1000 e 3000
@@ -327,12 +342,24 @@ def main() -> int:
         #Temperaturas
         'SCALED_PRESSURE.temperature': (4000, 5600),  # cdegC similares (3998; 5558) 4293.4 equivale em Cº (39,98; 55,58) 42,934
         'SENSOR_OFFSETS.raw_temp': (4000, 5600),  # cdegC similares (4000; 5558) media: 4293.18
+
+        #acceleration
+        "IMU.AccX": (-9.8, 9.8), 
+        "IMU.AccY": (-9.8, 9.8), 
+        "IMU.AccZ": (-19.6, 0),
+        "IMU2.AccX": (-9.8, 9.8),
+        "IMU2.AccY": (-9.8, 9.8),
+        "IMU2.AccZ": (-19.6, 0),
+        #HDOP
+        "GPS.HDop": (0, 10),
+        "GPS2.HDop": (0, 10),
+
     }
 
-    # Check availability of each pair in dataset
-    for (param1, param2), title in similar_pairs.items():
-        if param1 not in dataset or param2 not in dataset:
-            print(f"Warning: Data missing for pair: {param1}, {param2}")
+    # # Check availability of each pair in dataset
+    # for (param1, param2), title in similar_pairs.items():
+    #     if param1 not in dataset or param2 not in dataset:
+    #         print(f"Warning: Data missing for pair: {param1}, {param2}")
 
     # Normalize units
     for field in dataset:
@@ -351,23 +378,23 @@ def main() -> int:
     anomalies = {}
     for anm, th in anomaly_thresholds.items():
         if anm not in dataset:
-            print(f"{anm} not captured in dataset")
+            # print(f"{anm} not captured in dataset")
             continue
         if len(th) != 2:
-            print(f"Invalid threshold for {anm}: {th}")
+            # print(f"Invalid threshold for {anm}: {th}")
             continue
         anomalies[anm] = [ x if x<th[0] or x>th[1] else None for x in dataset[anm]]
 
     # save raw data to csv
-    save2csv(f"{args.tlog}.csv", timestamps, dataset, units)
-    save2csv(f"{args.tlog}-anomalies.csv", timestamps, anomalies, units)
+    save2csv(f"{input_filename}.csv", timestamps, dataset, units)
+    save2csv(f"{input_filename}-anomalies.csv", timestamps, anomalies, units)
 
     # save fields units to file
-    np.savetxt(f"{args.tlog}.units.txt", [ f"{_f}, {_u}" for _f,_u in units.items() ], fmt="%s",)
+    np.savetxt(f"{input_filename}.units.txt", [ f"{_f}, {_u}" for _f,_u in units.items() ], fmt="%s",)
 
     # Create output directory for figures
-    os.makedirs(f"{args.tlog}-figs", exist_ok=True)
-    generate_comparison_charts(timestamps, dataset, units, similar_pairs, anomalies, f"{args.tlog}-figs/fig01")
+    os.makedirs(f"{input_filename}-figs", exist_ok=True)
+    generate_comparison_charts(timestamps, dataset, units, similar_pairs, anomalies, f"{input_filename}-figs/fig01")
 
     return 0
 
