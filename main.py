@@ -187,7 +187,7 @@ def main() -> int:
                     "RAW_IMU.zacc", 
                     "SCALED_IMU2.xacc", 
                     "SCALED_IMU2.yacc",
-                    "SCALED_IMU2.zacc" 
+                    "SCALED_IMU2.zacc"
                 ],
                 head=args.head,
             )
@@ -296,7 +296,10 @@ def main() -> int:
         # SPEED VFR_HUD
         'VFR_HUD.airspeed': (21.606, 39.098),  #42 and 76 knots 21.606, 39.098 (m/s)
         'VFR_HUD.groundspeed': (21.606, 39.098),  #(m/s) similar to: GPS_RAW_INT.vel and GPS2_RAW Accelerometers Threshold x-axis (0 to 3.8 g) verificar unidades??? -11500 e 500
-        'RAW_IMU.yacc':   # Threshold y-axis (0 to 3.8 g) -1000 e 3000
+        
+        # Accelerometers RAW_IMU
+        'RAW_IMU.xacc': (-980, 980),  # Threshold x-axis (0 to 3.8 g) verificar unidades??? -11500 e 500
+        'RAW_IMU.yacc': (-980, 980),  # Threshold y-axis (0 to 3.8 g) -1000 e 3000
         'RAW_IMU.zacc': (-1960, 0),  # Threshold z-axis (0 to 3.8 g) -1600 e 200
 
         # Accelerometers SCALED_IMU2
