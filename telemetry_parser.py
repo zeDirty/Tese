@@ -85,8 +85,8 @@ def parse_telemetry_bin(
 
     print("Allocating arrays")
     msg_types = parse_fields(fields)
-    tstamps = [None] * n_entries
-    dataset = {field: [None] * n_entries for field in fields}
+    tstamps = []
+    dataset = {field: [] for field in fields}
 
     i=0
     for i in range(n_entries):
@@ -100,9 +100,13 @@ def parse_telemetry_bin(
                 end="",
             )
 
-        tstamps[i] = getattr(msg, "_timestamp", None)
+        tstamps.append(getattr(msg, "_timestamp", None))
+        inserted=set()
         for fname in msg_types[msg.get_type()]:
-            dataset[f"{msg.get_type()}.{fname}"][i] = getattr(msg, fname, None)
+            inserted.add(f"{msg.get_type()}.{fname}")
+            dataset[f"{msg.get_type()}.{fname}"].append(getattr(msg, fname, None))
+        for field in set(dataset.keys())-inserted:
+            dataset[field].append(None)
 
     print("Parsed all relevant fields         ")
 
