@@ -173,8 +173,6 @@ def main() -> int:
                     "VFR_HUD.airspeed",
                     "VFR_HUD.throttle",
                     "GLOBAL_POSITION_INT.vx",
-                    "GPS2_RAW.eph",
-                    "GPS_RAW_INT.eph",
                     "GPS2_RAW.vel",
                     "GPS_RAW_INT.vel",
                     "AHRS3.altitude",
@@ -184,6 +182,12 @@ def main() -> int:
                     "GPS_RAW_INT.satellites_visible",
                     "SCALED_PRESSURE.temperature",
                     "SENSOR_OFFSETS.raw_temp",
+                    "RAW_IMU.xacc",
+                    "RAW_IMU.yacc",
+                    "RAW_IMU.zacc", 
+                    "SCALED_IMU2.xacc", 
+                    "SCALED_IMU2.yacc",
+                    "SCALED_IMU2.zacc" 
                 ],
                 head=args.head,
             )
@@ -211,6 +215,8 @@ def main() -> int:
                     "STAT.isFlyProb",
                     "STAT.Armed",
                     "STAT.Stage",
+                    "GPS.HDop",
+                    "GPS2.HDop",
                 ],
                 head=args.head,
             )
@@ -254,6 +260,10 @@ def main() -> int:
         ('VFR_HUD.alt', 'GPS2_RAW.alt'): 'VFR HUD vs GPS2 RAW altitude comparison',
         ('AHRS3.altitude', 'GPS_RAW_INT.alt'): 'AHRS3 vs GPS RAW altitude comparison',
         ('AHRS3.altitude', 'GPS2_RAW.alt'): 'AHRS3 vs GPS2 RAW altitude comparison',
+        ##aceleracao
+        ('RAW_IMU.xacc', 'SCALED_IMU2.xacc'): 'IMU Raw vs IMU2 Raw X acelaration comparison',
+        ('RAW_IMU.yacc', 'SCALED_IMU2.yacc'): 'IMU Raw vs IMU2 Raw Y acelaration comparison',
+        ('RAW_IMU.zacc', 'SCALED_IMU2.zacc'): 'IMU Raw vs IMU2 Raw Z acelaration comparison',
         ##HDOP
         ('GPS2_RAW.eph', 'GPS_RAW_INT.eph'): 'GPS2 RAW vs GPS RAW HDOP comparison',
         ##satellites
@@ -285,17 +295,14 @@ def main() -> int:
 
         # SPEED VFR_HUD
         'VFR_HUD.airspeed': (21.606, 39.098),  #42 and 76 knots 21.606, 39.098 (m/s)
-        'VFR_HUD.groundspeed': (21.606, 39.098),  #(m/s) similar to: GPS_RAW_INT.vel and GPS2_RAW.vel
-
-        # Accelerometers RAW_IMU
-        #'RAW_IMU.xacc': (0, 3.8),  # Threshold x-axis (0 to 3.8 g) verificar unidades??? -11500 e 500
-        #'RAW_IMU.yacc': (0, 3.8),  # Threshold y-axis (0 to 3.8 g) -1000 e 3000
-        #'RAW_IMU.zacc': (0, 3.8),  # Threshold z-axis (0 to 3.8 g) -1600 e 200
+        'VFR_HUD.groundspeed': (21.606, 39.098),  #(m/s) similar to: GPS_RAW_INT.vel and GPS2_RAW Accelerometers Threshold x-axis (0 to 3.8 g) verificar unidades??? -11500 e 500
+        'RAW_IMU.yacc':   # Threshold y-axis (0 to 3.8 g) -1000 e 3000
+        'RAW_IMU.zacc': (-1960, 0),  # Threshold z-axis (0 to 3.8 g) -1600 e 200
 
         # Accelerometers SCALED_IMU2
-        #'SCALED_IMU2.xacc': (0, 3.8),  # Threshold x-axis (0 to 3.8 g) (mG) valores -380 a 501 (spike no final de -11000)
-        #'SCALED_IMU2.yacc': (0, 3.8),  # Threshold y-axis (0 to 3.8 g) (mG) -933 a 1177  (spike no final de 3333)
-        #'SCALED_IMU2.zacc': (0, 3.8),  # Threshold z-axis (0 to 3.8 g) (mG) -1533 a -361
+        'SCALED_IMU2.xacc': (-980, 980),  # Threshold x-axis (0 to 3.8 g) (mG) valores -380 a 501 (spike no final de -11000)
+        'SCALED_IMU2.yacc': (-980, 980),  # Threshold y-axis (0 to 3.8 g) (mG) -933 a 1177  (spike no final de 3333)
+        'SCALED_IMU2.zacc': (-1960, 0),  # Threshold z-axis (0 to 3.8 g) (mG) -1533 a -361
 
         # ALTITUDE
         'VFR_HUD.alt': (0, 3078),  # Altitude between 0 and 3078 meters (SIMILAR A AHRS3.altitude)
@@ -307,8 +314,8 @@ def main() -> int:
         'LOCAL_POSITION_NED.z': (-3078, 0),  # Altitude in local frame
 
         # HDOP (Horizontal Dilution of Precision)
-        'GPS2_RAW.eph': (0, 10),  # GPS2_RAW eph gps2 raw_t(Min:60 Max: 139 Mean: 75.83)
-        'GPS_RAW_INT.eph': (0, 10),  # GPS_RAW_INT eph gps raw int t(Min:60 Max:142 Mean:75.42)
+        #'GPS2_RAW.eph': (0, 10),  # GPS2_RAW eph gps2 raw_t(Min:60 Max: 139 Mean: 75.83)
+        #'GPS_RAW_INT.eph': (0, 10),  # GPS_RAW_INT eph gps raw int t(Min:60 Max:142 Mean:75.42)
 
         #visible satellites
         'GPS2_RAW.satellites_visible': (5, 20),  # Number of satellites visible in GPS2_RAW (0 to 20)
