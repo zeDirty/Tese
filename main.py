@@ -76,6 +76,11 @@ def generate_comparison_charts(timestamps, dataset, units, similar_pairs, anomal
     # Calculate relative time from initial timestamp
     t = [t - timestamps[0] for t in timestamps]
 
+    # remove non-existing-on-dataset similar_pairs
+    for params in list(similar_pairs.keys()):
+        if (params[0] not in dataset or  params[1] not in dataset) and params in similar_pairs:
+            similar_pairs.pop(params)
+
     # Define the total number of charts required
     num_comparisons = len(similar_pairs)
     fig, axs = plt.subplots(num_comparisons, figsize=(10, 5 * num_comparisons), constrained_layout=True)
@@ -269,7 +274,7 @@ def main() -> int:
         ('RAW_IMU.yacc', 'SCALED_IMU2.yacc'): 'IMU Raw vs IMU2 Raw Y acelaration comparison',
         ('RAW_IMU.zacc', 'SCALED_IMU2.zacc'): 'IMU Raw vs IMU2 Raw Z acelaration comparison',
         ##HDOP
-        ('GPS2_RAW.eph', 'GPS_RAW_INT.eph'): 'GPS2 RAW vs GPS RAW HDOP comparison',
+        # ('GPS2_RAW.eph', 'GPS_RAW_INT.eph'): 'GPS2 RAW vs GPS RAW HDOP comparison',
         ##satellites
         ('GPS2_RAW.satellites_visible', 'GPS_RAW_INT.satellites_visible'): 'GPS2 RAW vs GPS RAW visible satellites comparison',
         ##Temperaturas
